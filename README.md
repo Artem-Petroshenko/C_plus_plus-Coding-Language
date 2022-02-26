@@ -1,2 +1,2 @@
-# C_plus_plus-Coding-Language
-2nd course of Applied Mathematics and Informatics/4th semestr
+# Solving the Quadratic Equation
+Outputs Real roots of the equation of the form ax^2 + bx^2 + c = 0, where a, b, c != 0.
