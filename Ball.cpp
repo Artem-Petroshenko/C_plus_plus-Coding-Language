@@ -1,5 +1,10 @@
 #include "Ball.hpp"
 
+extern int player_score;
+
+const float ballRadius{ 10.f };
+float ballVelocity{ 0.2f };
+
 Ball::Ball(float x, float y, float radius, Color color) {
 	shape.setPosition(x, y);
 	shape.setRadius(radius);
@@ -7,7 +12,7 @@ Ball::Ball(float x, float y, float radius, Color color) {
 	shape.setOrigin(radius, radius);
 }
 
-bool Ball::update() {
+void Ball::update() {
 	shape.move(velocity);
 	//wall reflection
 	if (left() < 0 || right() > windowWidth)
@@ -16,7 +21,6 @@ bool Ball::update() {
 		velocity.y = -velocity.y;
 	else if (bot() > windowHeight) {
 		velocity.y = -velocity.y;
-		return false;
+		player_score--;
 	}
-	return true;
 }

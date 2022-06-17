@@ -1,12 +1,18 @@
 #include "Block.hpp"
 
-Block::Block(float x, float y, float width, float height, Color color, bool br, bool boo) {
+const float paddleWidth{ 80.f }, paddleHeight{ 20.f };
+const float blockWidth{ 60.f }, blockHeight{ 20.f };
+const int countX{ 11 }, countY{ 4 };
+float paddleVelocity{ 0.2f };
+
+Block::Block(float x, float y, float width, float height, Color color, bool br, bool boo, bool bon) {
 	shape.setPosition(x, y);
 	shape.setSize({ width, height });
 	shape.setFillColor(color);
 	shape.setOrigin(width / 2.0, height / 2.0);
 	breakable = br;
 	boost = boo;
+	withBonus = bon;
 }
 
 void Paddle::update() {
@@ -18,4 +24,11 @@ void Paddle::update() {
 		velocity.x = paddleVelocity;
 	else
 		velocity.x = 0;
+}
+
+void BonusBlock::update() {
+	shape.move(velocity);
+
+	if (bot() > windowHeight)
+		fell = true;
 }

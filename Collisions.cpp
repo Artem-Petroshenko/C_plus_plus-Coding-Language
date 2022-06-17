@@ -1,5 +1,7 @@
 #include "Collisions.hpp"
 
+extern int player_score;
+
 template<class T1, class T2> bool isIntersacting(T1& a, T2& b) {
 	return a.right() >= b.left() && a.left() <= b.right() && a.top() <= b.bot() && a.bot() >= b.top();
 }
@@ -9,12 +11,16 @@ bool testCollision(Block& block, Ball& ball) {
 		return false;
 
 	float coef = 1;
+	bool dropBonus = false;
 
 	if (block.getBreak()) {
+		player_score++;
 		block.setHP(block.getHP() - 1);
 		Color color = block.getShape().getFillColor();
 		color.a = 85 * block.getHP();
 		block.setColor(color);
+		if (block.getHP() == 0 && block.getWithBonus())
+			dropBonus = true;
 	}
 
 	//calculating the overlaps
@@ -39,5 +45,16 @@ bool testCollision(Block& block, Ball& ball) {
 		float coef = 1.5;
 		ball.setVelocity(ball.getVelocity().x * coef, ball.getVelocity().y * coef);
 	}
+	return dropBonus;
+}
+
+bool testCapture(BonusBlock& block, Paddle& paddle) {
+	if (!isIntersacting(block, paddle))
+		return false;
+
+	block.setFell(true);
+	block.setBonusActive(true);
+	block.restartBonusTimer();
+	block.getBonus()->doBonus(paddle);
 	return true;
 }

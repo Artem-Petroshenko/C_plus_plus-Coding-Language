@@ -1,10 +1,13 @@
 #pragma once
 #include "Common.hpp"
 
+extern const float ballRadius;
+extern float ballVelocity;
+
 class Ball {
 public:
 	Ball(float x, float y, float radius, Color color);
-	bool update();
+	void update();
 
 	//getters and setters
 	CircleShape getShape() { return shape; };

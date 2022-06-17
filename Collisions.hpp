@@ -4,3 +4,4 @@
 
 template<class T1, class T2> bool isIntersacting(T1& a, T2& b);
 bool testCollision(Block& block, Ball& ball);
+bool testCapture(BonusBlock& block, Paddle& paddle);
