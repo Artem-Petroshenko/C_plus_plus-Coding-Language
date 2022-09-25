@@ -1,116 +1,135 @@
 #include "Collisions.hpp"
 
-int player_score{ 0 };
-const float bonusWidth{ 6.f }, bonusHeight{ 6.f };
+int playerScore{ 0 };
 
 int main() {
-    Time bonusTime = seconds(10.f);
-    // Create the main window
-    RenderWindow window(VideoMode(windowWidth, windowHeight), "Arkanoid game");
-    Ball ball(windowWidth / 2.0, windowHeight / 2.0, ballRadius, Color::White);
-    Paddle paddle(windowWidth / 2.0, windowHeight - 50.0, paddleWidth, paddleHeight, Color::White, false, false, false);
-    vector<Block> blocks;
-    vector<BonusBlock> bonusblocks;
-    vector<SizePaddleBonus*> bonuses;
-    SpeedPaddleBonus b1;
+	srand(time(0));
+	RenderWindow window{ {windowWidth, windowHeight}, "Arkanoid - game" };
+	window.setFramerateLimit(60);
+	
+	vector<Ball> balls;
+	balls.emplace_back(windowWidth / 2, windowHeight - 50 - paddleHeight / 2.f);
+	Paddle paddle(windowWidth / 2, windowHeight - 50, paddleWidth, paddleHeight, Color::White, false, false, false);
+	vector<Block> bricks;
+	vector<MovingBlock> movingBricks;
+	vector<BonusBlock> bonusBlocks;
+	vector<Bonus*> bonuses;
 
-    Color blockColor{ 255, 242, 0, 255 };
-    for (int i = 1; i <= countX; i++)
-        for (int j = 1; j <= countY; j++) {
-            /*int tmp = rand() % 10;
-            Color blockColor{ 255, 242, 0, 255 };
-            bool br = true;
-            bool boo = false;
-            bool bon = false;
-            if (tmp > 8) {
-                blockColor = { 255, 0, 0, 255 };
-                br = false;
-            }
-            else if (tmp > 7) {
-                blockColor = { 255, 0, 230, 255 };
-                boo = true;
-            }
-            else if (tmp > 6) {
-                blockColor = { 0, 0, 255, 255 };
-                bon = true;
-            }*/
-            //blocks.emplace_back(22 + i * (blockWidth + 3), 22 + j * (blockHeight + 3), blockWidth, blockHeight, blockColor, br, boo, bon);
-            blocks.emplace_back(22 + i * (blockWidth + 3), 22 + j * (blockHeight + 3), blockWidth, blockHeight, blockColor, true, false, true);
-        }
-    ostringstream s;
-    s << player_score;
+	for (int i = 0; i < blocksCountX; i++)
+		for (int j = 0; j < blocksCountY; j++) {
+			int blockType = rand() % 10;
+			bool breakability = true, boosting = false, haveBonus = false;
+			Color color = Color::Yellow;
+			switch (blockType)
+			{
+			case 9:
+				breakability = false;
+				color = Color::Red;
+				break;
+			case 8:
+				boosting = true;
+				color = Color::Cyan;
+				break;
+			case 7:
+				haveBonus = true;
+				color = Color::Green;
+				break;
+			}
+			bricks.emplace_back((i + 1) * (blockWidth + 3) + 22, (j + 2) * (blockHeight + 3), blockWidth, blockHeight, color, breakability, boosting, haveBonus);
+		}
 
-    Font font;
-    font.loadFromFile("arial.ttf");
-    Text plScore("", font, 20);
+	ostringstream s;
+	s << playerScore;
 
-    // Start the game loop
-    while (window.isOpen()) {
-        ostringstream s;
-        s << player_score;
+	Font font;
+	font.loadFromFile("arial.ttf");
+	Text plScore("", font, 20);
 
-        plScore.setString("Score: " + s.str());
-        plScore.setFillColor(Color::White);
-        plScore.setStyle(Text::Bold);
-        plScore.setPosition(0, windowHeight - 25);
+	while (true) {
+		ostringstream s;
+		s << playerScore;
 
-        //Clear the window
-        window.clear(Color::Black);
+		plScore.setString("Score: " + s.str());
+		plScore.setFillColor(Color::White);
+		plScore.setStyle(Text::Bold);
+		plScore.setPosition(0, windowHeight - 25);
 
-        //exit the window
-        if (Keyboard::isKeyPressed(Keyboard::Key::Escape))
-            window.close();
+		window.clear(Color::Black);
 
-        //show the window contents
-        ball.update();
-        paddle.update();
-        testCollision(paddle, ball);
-        for (auto& block : blocks)
-            if (testCollision(block, ball)) {
-                bonusblocks.emplace_back(block.getShape().getPosition().x, block.getShape().getPosition().y, bonusWidth, bonusHeight, Color::Green, true, false, false);
-                SpeedPaddleBonus* ref = &b1;
-                bonusblocks.back().setBonus(ref);
-                bonusblocks.back().setVelocity(0.f, 0.1f);
-            }
-        for (auto& bonusblock : bonusblocks)
-            bonusblock.update();
-        for (auto& bonusblock : bonusblocks)
-            if (testCapture(bonusblock, paddle))
-                bonuses.push_back(bonusblock.getBonus());
+		if (Keyboard::isKeyPressed(Keyboard::Key::Escape))
+			break;		
 
-        for (auto& bonus : bonuses)
-            if (bonus->getTimer().getElapsedTime() >= bonusTime && bonus->getActive() == true) {
-                bonus->rollback(paddle);
-                bonus->setActive(false);
-            }
+		for(auto& ball : balls)
+			TestCollision(paddle, ball);
 
-        bonuses.erase(remove_if(begin(bonuses), end(bonuses), [](SizePaddleBonus* bonus) { return !bonus->getActive(); }), end(bonuses));
-        bonusblocks.erase(remove_if(begin(bonusblocks), end(bonusblocks), [](BonusBlock& bonus) { return bonus.getFell(); }), end(bonusblocks));
-        blocks.erase(remove_if(begin(blocks), end(blocks), [](Block& block) { return block.getHP() == 0; }), end(blocks));
+		for (auto& brick : bricks)
+			for(auto& ball : balls)
+				if (TestCollision(brick, ball)) {
+					bonusBlocks.emplace_back(brick.getShape()->getPosition().x, brick.getShape()->getPosition().y, bonusWidth, bonusHeight,
+						Color::Green, true, false, false);
+					int bonusType = rand() % 2;
+					Bonus* bonus = new MovingBlockBonus(&bricks, &movingBricks);
+					switch (bonusType)
+					{
+					case 1:
+						bonus = new SecondBallBonus(&balls);
+						break;
+					}
+					bonusBlocks.at(bonusBlocks.size() - 1).setBonus(bonus);
+				}
 
-        window.draw(ball.getShape());
-        window.draw(paddle.getShape());
-        for (auto& block : blocks)
-            window.draw(block.getShape());
-        for (auto& bonusblock : bonusblocks)
-            window.draw(bonusblock.getShape());
-        window.draw(plScore);
-        window.display();
-    }
-    return 0;
+		for (auto& brick1 : movingBricks)
+			for (auto& brick2 : bricks)
+				TestCollisionBlock(brick1, brick2);
+
+		for (auto& brick : movingBricks)
+			for(auto& ball : balls)
+				TestCollision(brick, ball);
+
+		for (auto& ball1 : balls)
+			for (auto& ball2 : balls) {
+				if (ball1.getShape()->getPosition().x == ball2.getShape()->getPosition().x && ball1.getShape()->getPosition().y == ball2.getShape()->getPosition().y)
+					continue;
+				TestCollisionBall(ball1, ball2);
+			}
+
+		for (auto& brick1 : movingBricks)
+			for (auto& brick2 : movingBricks) {
+				if (brick1.getShape()->getPosition().x == brick2.getShape()->getPosition().x && brick1.getShape()->getPosition().y == brick2.getShape()->getPosition().y)
+					continue;
+				TestCollisionBlock(brick1, brick2);
+			}
+
+		for (auto& bonusblock : bonusBlocks)
+			if (TestCapture(bonusblock, paddle)) {
+				bonusblock.getBonus()->doBonus();
+				bonuses.emplace_back(bonusblock.getBonus());
+			}
+
+		movingBricks.erase(remove_if(begin(movingBricks), end(movingBricks), [](Block& brick) {return !brick.gethp(); }), end(movingBricks));
+		bonusBlocks.erase(remove_if(begin(bonusBlocks), end(bonusBlocks), [](Block& bonusblock) {return !bonusblock.gethp(); }), end(bonusBlocks));
+		bricks.erase(remove_if(begin(bricks), end(bricks), [](Block& brick) {return !brick.gethp(); }), end(bricks));
+
+		for(auto& ball : balls)
+			ball.update();
+		paddle.update();
+		for (auto& bonusblock : bonusBlocks)
+			bonusblock.update();
+		for (auto& brick : movingBricks)
+			brick.update();
+
+		for (auto& bonusblock : bonusBlocks)
+			window.draw(*bonusblock.getShape());
+		for (auto& brick : bricks)
+			window.draw(*brick.getShape());
+		for (auto& brick : movingBricks)
+			window.draw(*brick.getShape());
+		for(auto& ball : balls)
+			window.draw(*ball.getShape());
+		window.draw(*paddle.getShape());
+		window.draw(plScore);
+		window.display();
+	}
+
+	return 0;
 }
-
-
-//    // Process events
-//    Event event;
-//    while (window.pollEvent(event)) {
-//        // Close window: exit
-//        if (event.type == Event::Closed)
-//            window.close();
-//    }
-//    // Clear screen
-//    window.clear();
-//    // Update the window
-//    window.display();
-//}
-//return EXIT_SUCCESS;

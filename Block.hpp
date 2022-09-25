@@ -1,77 +1,79 @@
 #pragma once
+#include "Common.hpp"
 #include "Bonus.hpp"
 
-extern const float paddleWidth, paddleHeight;
-extern const float blockWidth, blockHeight;
-extern const int countX, countY;
-extern float paddleVelocity;
+extern float const paddleWidth, paddleHeight;
+extern float paddleSpeed;
+extern float const blockWidth, blockHeight;
 
 class Block {
 public:
-	Block(float x, float y, const float width, const float height, Color color, bool br, bool boo, bool bon);
+	Block(float x, float y, float width, float height, Color color, bool breakability, bool boost, bool bonus);
+	virtual ~Block() { delete shape; };
 
-	//getters and setters
-	RectangleShape getShape() { return shape; };
-	void setSize(float width, float height) { shape.setSize({ width, height }); };
-	void setPosition(float x, float y) { shape.setPosition(x, y); };
-	void setOrigin(float x, float y) { shape.setOrigin(x, y); };
-	void setColor(Color color) { shape.setFillColor(color); };
-	int getHP() { return hp; };
-	void setHP(int newhp) { hp = newhp; };
-	bool getBreak() { return breakable; };
-	bool getBoost() { return boost; };
-	bool getWithBonus() { return withBonus; };
+	float x() { return shape->getPosition().x; };
+	float y() { return shape->getPosition().y; };
+	float left() { return x() - shape->getSize().x / 2.f; };
+	float right() { return x() + shape->getSize().x / 2.f; };
+	float top() { return y() - shape->getSize().y / 2.f; };
+	float bot() { return y() + shape->getSize().y / 2.f; };
+	void setColor(Color _color) { shape->setFillColor(_color); };
+	RectangleShape* getShape() { return shape; };
+	bool isBreakable() { return breakable; };
+	bool isBoosting() { return boosting; };
+	bool haveBonus() { return withBonus; };
+	int gethp() { return hp; };
+	void sethp(int _hp) { hp = _hp; };
 
-	//coordinates of a block
-	float x() { return shape.getPosition().x; };
-	float y() { return shape.getPosition().y; };
-	float left() { return x() - shape.getSize().x / 2.0; };
-	float right() { return x() + shape.getSize().x / 2.0; };
-	float top() { return y() - shape.getSize().y / 2.0; };
-	float bot() { return y() + shape.getSize().y / 2.0; };
+	virtual void update() {};
 
 protected:
-	RectangleShape shape;
-	int hp{ 1 };
+	RectangleShape* shape = new RectangleShape();
 	bool breakable;
-	bool boost;
+	int hp{ 3 };
+	bool boosting;
 	bool withBonus;
 };
 
-class Unbreakable : public Block {
+class MovingBlock : public Block {
 public:
-	Unbreakable(float x, float y, const float width, const float height, Color color, bool br, bool boo, bool bon) : Block(x, y, width, height, color, br, boo, bon) {};
-};
+	MovingBlock(float x, float y, float width, float height, Color color, bool breakability, bool boost, bool bonus) : Block(x, y, width, height, color, breakability, boost, bonus) {};
 
-class Paddle : public Block {
-public:
-	Paddle(float x, float y, const float width, const float height, Color color, bool br, bool boo, bool bon) : Block(x, y, width, height, color, br, boo, bon) {};
+	void setSpeedX(float _x) { speed.x = _x; };
+	void setSpeedY(float _y) { speed.y = _y; };
+
 	void update();
 
-	//getters and setters
-	Vector2f getVelocity() { return velocity; };
-	void setVelocity(float velX, float velY) { velocity.x = velX; velocity.y = velY; };
-
 private:
-	Vector2f velocity;
+	Vector2f speed{ -paddleSpeed, 0 };
 };
 
 class BonusBlock : public Block {
 public:
-	BonusBlock(float x, float y, const float width, const float height, Color color, bool br, bool boo, bool bon) : Block(x, y, width, height, color, br, boo, bon) {};
+	BonusBlock(float x, float y, float width, float height, Color color, bool breakability, bool boost, bool bonus) : Block(x, y, width, height, color, breakability, boost, bonus) {};
+	//~BonusBlock() { delete shape; 
+	//				delete bonus; };
+
+	Bonus* getBonus() { return bonus; };
+	void setBonus(Bonus* _bonus) { bonus = _bonus; };
+
 	void update();
 
-	Vector2f getVelocity() { return velocity; };
-	void setVelocity(float velX, float velY) { velocity.x = velX; velocity.y = velY; };
-	SizePaddleBonus* getBonus() { return bonus; };
-	void setBonus(SizePaddleBonus* _bonus) { bonus = _bonus; };
-	void setBonusActive(bool cond) { bonus->setActive(cond); };
-	void restartBonusTimer() { bonus->restartTimer(); };
-	bool getFell() { return fell; };
-	void setFell(bool cond) { fell = cond; };
+private:
+	Vector2f speed{ 0, bonusSpeed };
+	Bonus* bonus;
+};
+
+class Paddle : public Block {
+public:
+	Paddle(float x, float y, float width, float height, Color color, bool breakability, bool boost, bool bonus) : Block(x, y, width, height, color, breakability, boost, bonus) {};
+	~Paddle() { delete shape; };
+
+	void setSpeedX(float _x) { speed.x = _x; };
+	void setSpeedY(float _y) { speed.y = _y; };
+
+	void update();
 
 private:
-	Vector2f velocity;
-	SizePaddleBonus* bonus;
-	bool fell{ false };
+	Vector2f speed{ 0, 0 };
 };

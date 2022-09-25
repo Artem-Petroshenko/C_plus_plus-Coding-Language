@@ -1,25 +1,43 @@
 #pragma once
-#include "Common.hpp"
 
-class Paddle;
+class Ball;
 
-class SizePaddleBonus {
+class Block;
+
+class MovingBlock;
+
+class Bonus {
 public:
-	SizePaddleBonus() {};
+	Bonus() = default;
+	//virtual ~Bonus() = default;
 
-	Clock getTimer() { return timer; };
+	Time getTime() { return timer.getElapsedTime(); };
 	void restartTimer() { timer.restart(); };
-	bool getActive() { return isActive; };
-	void setActive(bool cond) { isActive = cond; };
 
-	virtual void doBonus(Paddle& paddle);
-	virtual void rollback(Paddle& paddle);
+	virtual void doBonus() {};
+	virtual void rollback() {};
 protected:
-	bool isActive{ false };
 	Clock timer;
 };
 
-class SpeedPaddleBonus : public SizePaddleBonus {
-	void doBonus(Paddle& paddle);
-	void rollback(Paddle& paddle);
+class MovingBlockBonus : public Bonus {
+public:
+	MovingBlockBonus(vector<Block>* _bricks, vector<MovingBlock>* _movingBricks) { bricks = _bricks;  movingBricks = _movingBricks; };
+	//~SizePaddleBonus();
+
+	void doBonus();
+
+private:
+	vector<Block>* bricks;
+	vector<MovingBlock>* movingBricks;
+};
+
+class SecondBallBonus : public Bonus {
+public:
+	SecondBallBonus(vector<Ball>* _balls) { balls = _balls; };
+
+	void doBonus();
+
+private:
+	vector<Ball>* balls;
 };

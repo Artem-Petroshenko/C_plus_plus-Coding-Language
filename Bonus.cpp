@@ -1,26 +1,17 @@
-#include "Bonus.hpp"
 #include "Block.hpp"
+#include "Ball.hpp"
 
-void SizePaddleBonus::doBonus(Paddle& paddle) {
-	paddle.setPosition(paddle.getShape().getPosition().x, paddle.getShape().getPosition().y);
-	float newWidth = paddle.getShape().getSize().x + 20.f;
-	float newHeight = paddle.getShape().getSize().y;
-	paddle.setSize(newWidth, newHeight);
-	paddle.setOrigin(newWidth / 2.0, newHeight / 2.0);
+vector<Vector2f> xyEmpty;
+
+void MovingBlockBonus::doBonus() {
+	int i = rand() % xyEmpty.size();
+	movingBricks->emplace_back(xyEmpty.at(i).x, xyEmpty.at(i).y, blockWidth, blockHeight, Color::Yellow, true, false, false);
 }
 
-void SizePaddleBonus::rollback(Paddle& paddle) {
-	paddle.setPosition(paddle.getShape().getPosition().x, paddle.getShape().getPosition().y);
-	float newWidth = paddle.getShape().getSize().x - 20.f;
-	float newHeight = paddle.getShape().getSize().y;
-	paddle.setSize(newWidth, newHeight);
-	paddle.setOrigin(newWidth / 2.0, newHeight / 2.0);
+void SecondBallBonus::doBonus() {
+	balls->emplace_back(windowWidth / 2, windowHeight - 50 - paddleHeight / 2.f);
 }
 
-void SpeedPaddleBonus::doBonus(Paddle& paddle) {
-	paddleVelocity += 0.1f;
-}
-
-void SpeedPaddleBonus::rollback(Paddle& paddle) {
-	paddleVelocity -= 0.1f;
-}
+//SizePaddleBonus::~SizePaddleBonus() {
+//	delete paddle; 
+//}

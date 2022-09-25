@@ -1,26 +1,28 @@
 #include "Ball.hpp"
 
-extern int player_score;
+float const ballRadius{ 10.f }; 
+float ballSpeed{ 8.f };
+extern int playerScore;
 
-const float ballRadius{ 10.f };
-float ballVelocity{ 0.2f };
-
-Ball::Ball(float x, float y, float radius, Color color) {
-	shape.setPosition(x, y);
-	shape.setRadius(radius);
-	shape.setFillColor(color);
-	shape.setOrigin(radius, radius);
+Ball::Ball(float x, float y) {
+	shape->setPosition(x, y);
+	shape->setRadius(ballRadius);
+	shape->setFillColor(Color::White);
+	shape->setOrigin(ballRadius, ballRadius);
 }
 
 void Ball::update() {
-	shape.move(velocity);
-	//wall reflection
-	if (left() < 0 || right() > windowWidth)
-		velocity.x = -velocity.x;
+	shape->move(speed);
+	
+	if (left() < 0)
+		speed.x = ballSpeed;
+	else if(right() > windowWidth)
+		speed.x = -ballSpeed;
+
 	if (top() < 0)
-		velocity.y = -velocity.y;
+		speed.y = ballSpeed;
 	else if (bot() > windowHeight) {
-		velocity.y = -velocity.y;
-		player_score--;
+		speed.y = -ballSpeed;
+		playerScore--;
 	}
 }
