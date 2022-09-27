@@ -7,6 +7,8 @@ extern float ballSpeed;
 class Ball {
 public:
 	Ball(float x, float y);
+	Ball(const Ball& ball);
+	Ball& operator=(const Ball& ball);
 	~Ball() { delete shape; };
 
 	float x() { return shape->getPosition().x; };
@@ -22,6 +24,6 @@ public:
 	void update();
 
 private:
-	CircleShape* shape = new CircleShape();
+	CircleShape* shape;
 	Vector2f speed{ -ballSpeed, -ballSpeed };
 };

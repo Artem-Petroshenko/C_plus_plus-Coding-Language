@@ -9,21 +9,20 @@ class MovingBlock;
 class Bonus {
 public:
 	Bonus() = default;
-	//virtual ~Bonus() = default;
-
-	Time getTime() { return timer.getElapsedTime(); };
-	void restartTimer() { timer.restart(); };
+	//Bonus(const Bonus& bonus) {};
+	//Bonus(const SecondBallBonus& bonus) {};
+	virtual ~Bonus() = default;
 
 	virtual void doBonus() {};
 	virtual void rollback() {};
-protected:
-	Clock timer;
 };
 
 class MovingBlockBonus : public Bonus {
 public:
 	MovingBlockBonus(vector<Block>* _bricks, vector<MovingBlock>* _movingBricks) { bricks = _bricks;  movingBricks = _movingBricks; };
-	//~SizePaddleBonus();
+	MovingBlockBonus(const MovingBlockBonus& bonus);
+	MovingBlockBonus& operator=(const MovingBlockBonus& bonus);
+	~MovingBlockBonus() {};
 
 	void doBonus();
 
@@ -35,6 +34,9 @@ private:
 class SecondBallBonus : public Bonus {
 public:
 	SecondBallBonus(vector<Ball>* _balls) { balls = _balls; };
+	SecondBallBonus(const SecondBallBonus& bonus);
+	SecondBallBonus& operator=(const SecondBallBonus& bonus);
+	~SecondBallBonus() {};
 
 	void doBonus();
 

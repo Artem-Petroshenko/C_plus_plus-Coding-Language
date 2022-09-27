@@ -5,10 +5,25 @@ float ballSpeed{ 8.f };
 extern int playerScore;
 
 Ball::Ball(float x, float y) {
+	shape = new CircleShape();
 	shape->setPosition(x, y);
 	shape->setRadius(ballRadius);
 	shape->setFillColor(Color::White);
 	shape->setOrigin(ballRadius, ballRadius);
+}
+
+Ball::Ball(const Ball& ball) {
+	shape = new CircleShape(*ball.shape);
+	speed = ball.speed;
+}
+
+Ball& Ball::operator=(const Ball& ball) {
+	if (this == &ball)
+		return *this;
+	delete shape;
+	shape = new CircleShape(*ball.shape);
+	speed = ball.speed;
+	return *this;
 }
 
 void Ball::update() {

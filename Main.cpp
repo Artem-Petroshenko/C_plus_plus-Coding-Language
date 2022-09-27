@@ -2,11 +2,19 @@
 
 int playerScore{ 0 };
 
+bool WinCondition(vector<Block> bricks, vector<MovingBlock> movingBricks) {
+	for (auto& brick : bricks)
+		if (brick.isBreakable() || !movingBricks.empty())
+			return false;
+	return true;
+}
+
 int main() {
 	srand(time(0));
 	RenderWindow window{ {windowWidth, windowHeight}, "Arkanoid - game" };
 	window.setFramerateLimit(60);
 	
+	bool winCond = false;
 	vector<Ball> balls;
 	balls.emplace_back(windowWidth / 2, windowHeight - 50 - paddleHeight / 2.f);
 	Paddle paddle(windowWidth / 2, windowHeight - 50, paddleWidth, paddleHeight, Color::White, false, false, false);
@@ -17,9 +25,9 @@ int main() {
 
 	for (int i = 0; i < blocksCountX; i++)
 		for (int j = 0; j < blocksCountY; j++) {
-			int blockType = rand() % 10;
-			bool breakability = true, boosting = false, haveBonus = false;
-			Color color = Color::Yellow;
+			int blockType = 7;
+			bool breakability{ true }, boosting{ false }, haveBonus{ false };
+			Color color{ Color::Yellow };
 			switch (blockType)
 			{
 			case 9:
@@ -44,8 +52,9 @@ int main() {
 	Font font;
 	font.loadFromFile("arial.ttf");
 	Text plScore("", font, 20);
+	Text Win("", font, 40);
 
-	while (true) {
+	while (!winCond) {
 		ostringstream s;
 		s << playerScore;
 
@@ -65,17 +74,20 @@ int main() {
 		for (auto& brick : bricks)
 			for(auto& ball : balls)
 				if (TestCollision(brick, ball)) {
-					bonusBlocks.emplace_back(brick.getShape()->getPosition().x, brick.getShape()->getPosition().y, bonusWidth, bonusHeight,
-						Color::Green, true, false, false);
 					int bonusType = rand() % 2;
-					Bonus* bonus = new MovingBlockBonus(&bricks, &movingBricks);
+					Bonus* bonus = nullptr;
 					switch (bonusType)
-					{
+					{		
+					case 0:
+						bonus = new MovingBlockBonus(&bricks, &movingBricks);
+						break;
 					case 1:
 						bonus = new SecondBallBonus(&balls);
 						break;
 					}
-					bonusBlocks.at(bonusBlocks.size() - 1).setBonus(bonus);
+					bonuses.push_back(bonus);
+					bonusBlocks.emplace_back(brick.getShape()->getPosition().x, brick.getShape()->getPosition().y, bonusWidth, bonusHeight,
+						Color::Green, true, false, false);
 				}
 
 		for (auto& brick1 : movingBricks)
@@ -102,13 +114,16 @@ int main() {
 
 		for (auto& bonusblock : bonusBlocks)
 			if (TestCapture(bonusblock, paddle)) {
-				bonusblock.getBonus()->doBonus();
-				bonuses.emplace_back(bonusblock.getBonus());
+				int index = rand() % bonuses.size();
+				bonuses.at(index)->doBonus();
+				remove(begin(bonuses), end(bonuses), bonuses.at(index));
+				bonuses.erase(end(bonuses));
 			}
 
-		movingBricks.erase(remove_if(begin(movingBricks), end(movingBricks), [](Block& brick) {return !brick.gethp(); }), end(movingBricks));
-		bonusBlocks.erase(remove_if(begin(bonusBlocks), end(bonusBlocks), [](Block& bonusblock) {return !bonusblock.gethp(); }), end(bonusBlocks));
-		bricks.erase(remove_if(begin(bricks), end(bricks), [](Block& brick) {return !brick.gethp(); }), end(bricks));
+		movingBricks.erase(remove_if(begin(movingBricks), end(movingBricks), [](Block& brick) { return !brick.gethp(); }), end(movingBricks));
+		auto ptr = remove_if(begin(bonusBlocks), end(bonusBlocks), [](Block& bonusblock) { return !bonusblock.gethp(); });
+		bonusBlocks.erase(ptr, end(bonusBlocks));
+		bricks.erase(remove_if(begin(bricks), end(bricks), [](Block& brick) { return !brick.gethp(); }), end(bricks));
 
 		for(auto& ball : balls)
 			ball.update();
@@ -128,8 +143,17 @@ int main() {
 			window.draw(*ball.getShape());
 		window.draw(*paddle.getShape());
 		window.draw(plScore);
+		if (WinCondition(bricks, movingBricks)) {
+			window.clear(Color::Black);
+			Win.setString("YOU WIN!\n Your score: " + s.str());
+			Win.setFillColor(Color::White);
+			Win.setStyle(Text::Bold);
+			Win.setPosition(windowWidth / 2, windowHeight / 2);
+			window.draw(Win);
+			winCond = true;
+		}
 		window.display();
 	}
-
+	//system("pause");
 	return 0;
 }
