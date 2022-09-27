@@ -34,7 +34,7 @@ public:
 protected:
 	RectangleShape* shape;
 	bool breakable;
-	int hp{ 1 };
+	int hp{ 3 };
 	bool boosting;
 	bool withBonus;
 };
@@ -59,7 +59,6 @@ public:
 	BonusBlock(float x, float y, float width, float height, Color color, bool breakability, bool boost, bool haveBonus) : Block(x, y, width, height, color, breakability, boost, haveBonus) {};
 	BonusBlock(const BonusBlock& block);
 	BonusBlock& operator=(const BonusBlock& block);
-	~BonusBlock() = default;
 
 	void update();
 

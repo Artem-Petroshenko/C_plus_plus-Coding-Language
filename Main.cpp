@@ -25,7 +25,7 @@ int main() {
 
 	for (int i = 0; i < blocksCountX; i++)
 		for (int j = 0; j < blocksCountY; j++) {
-			int blockType = 7;
+			int blockType = rand() % 10;
 			bool breakability{ true }, boosting{ false }, haveBonus{ false };
 			Color color{ Color::Yellow };
 			switch (blockType)
@@ -116,13 +116,12 @@ int main() {
 			if (TestCapture(bonusblock, paddle)) {
 				int index = rand() % bonuses.size();
 				bonuses.at(index)->doBonus();
-				remove(begin(bonuses), end(bonuses), bonuses.at(index));
-				bonuses.erase(end(bonuses));
+				delete bonuses.at(index);
+				bonuses.erase(begin(bonuses) + index);
 			}
 
 		movingBricks.erase(remove_if(begin(movingBricks), end(movingBricks), [](Block& brick) { return !brick.gethp(); }), end(movingBricks));
-		auto ptr = remove_if(begin(bonusBlocks), end(bonusBlocks), [](Block& bonusblock) { return !bonusblock.gethp(); });
-		bonusBlocks.erase(ptr, end(bonusBlocks));
+		bonusBlocks.erase(remove_if(begin(bonusBlocks), end(bonusBlocks), [](Block& bonusblock) { return !bonusblock.gethp(); }), end(bonusBlocks));
 		bricks.erase(remove_if(begin(bricks), end(bricks), [](Block& brick) { return !brick.gethp(); }), end(bricks));
 
 		for(auto& ball : balls)
